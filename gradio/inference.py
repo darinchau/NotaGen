@@ -286,7 +286,7 @@ def inference_completetion(period, composer, instrumentation, start: str):
         end_flag = False
         cut_index = None
 
-        tunebody_flag = False
+        tunebody_flag = True
 
         while True:
             predicted_patch = model.generate(input_patches.unsqueeze(0),
@@ -294,7 +294,6 @@ def inference_completetion(period, composer, instrumentation, start: str):
                                              top_p=TOP_P,
                                              temperature=TEMPERATURE)
             if not tunebody_flag and patchilizer.decode([predicted_patch]).startswith('[r:'):  # start with [r:0/
-                continue  # Force freeform generation for now
                 tunebody_flag = True
                 r0_patch = torch.tensor([ord(c) for c in '[r:0/']).unsqueeze(0).to(device)
                 temp_input_patches = torch.concat([input_patches, r0_patch], axis=-1)
@@ -322,12 +321,12 @@ def inference_completetion(period, composer, instrumentation, start: str):
             predicted_patch = torch.tensor([predicted_patch], device=device)  # (1, 16)
             input_patches = torch.cat([input_patches, predicted_patch], dim=1)  # (1, 16 * patch_len)
 
-            if len(byte_list) > 102400:
-                failure_flag = True
-                break
-            if time.time() - start_time > 20 * 60:
-                failure_flag = True
-                break
+            # if len(byte_list) > 102400:
+            #     failure_flag = True
+            #     break
+            # if time.time() - start_time > 20 * 60:
+            #     failure_flag = True
+            #     break
 
             if input_patches.shape[1] >= PATCH_LENGTH * PATCH_SIZE and not end_flag:
                 print('Stream generating...')
@@ -371,7 +370,8 @@ def inference_completetion(period, composer, instrumentation, start: str):
             abc_lines = [line + '\n' for line in abc_lines]
             try:
                 unreduced_abc_lines = rest_unreduce(abc_lines)
-            except:
+            except Exception as e:
+                print(e)
                 failure_flag = True
                 pass
             else:
@@ -397,28 +397,28 @@ V:4 treble
 V:2 bass
 V:3 bass
 V:5 bass
-[V:1][I:staff +1] A,2|[V:2]x2|[V:3]x2|[V:4]x2|[V:5]x2|
-[V:1][Q:1/4=160]!p![I:staff -1] z2[I:staff +1] E,C ^D,C|[V:2][A,,,A,,]2 z2 [A,,,A,,]2|[V:3]x6|[V:4]x6|[V:5]x6|
-[V:1]=D,B, F,B,[I:staff -1] F2|[V:2][A,,,A,,]2 z2 [A,,D,]2|[V:3]x4 ^G,2|[V:4]x6|[V:5]x6|
-[V:1]E2[I:staff +1] E,C ^D,C|[V:2][A,,,A,,]2 z2 [A,,,A,,]2|[V:3]A,2 x4|[V:4]x6|[V:5]x6|
-[V:1]=D,B, F,B,[I:staff -1] F2|[V:2][A,,,A,,]2 z2 [A,,D,]2|[V:3]x4 ^G,2|[V:4]x6|[V:5]x6|
-[V:1][I:staff +1] =D,B, F,B,[I:staff -1] F2|[V:2][A,,,A,,]2 z2 [A,,D,]2|[V:3]x2[I:staff -1] x2[I:staff +1] ^G,2|[V:4]x6|[V:5]x6|
-[V:1]"_cresc."[I:staff +1] =D,B, F,B,[I:staff -1] F2|[V:2][A,,,A,,]2 z2 [A,,D,]2|[V:3]x2[I:staff -1] x2[I:staff +1] ^G,2|[V:4]x6|[V:5]x6|
-[V:1]!fff! !>![bd'f']^a !>![bd']^^f !>![^gb]e|[V:2][A,,D,F,B,]2 [A,,D,F,B,]2 [A,,D,F,B,]2|[V:3]x6|[V:4]x6|[V:5]x6|
-[V:1]!f! [^e^g]^c [d=f]^A [Bd]F|[V:2][A,,D,F,B,]2 [A,,D,F,B,]2 [A,,D,F,B,]2|[V:3]x6|[V:4]x6|[V:5]x6|
-[V:1]!>!E4 A2|[V:2]A,,2 [E,C]2 [E,C]2|[V:3]x6|[V:4]x6|[V:5]x6|
-[V:1](3(^GAG ^^FG AB|[V:2]A,,2 [E,D]2 [E,D]2|[V:3]x6|[V:4]x6|[V:5]x6|
-[V:1]E4) c2|[V:2]A,,2 [E,C]2 [E,C]2|[V:3]x6|[V:4]x6|[V:5]x6|
-[V:1]{Bc} B2 ^AB cd|[V:2]A,,2 [E,^G,D]2 [E,G,D]2|[V:3]x6|[V:4]x6|[V:5]x6|
-[V:1]e2 (e'e e'^d|[V:2]A,,2 [E,C]2 [E,C]2|[V:3]x6|[V:4]x6|[V:5]x6|
-[V:1]e'=d) (ec eB)|[V:2]A,,2 [E,^G,D]2 [E,G,D]2|[V:3]x6|[V:4]x6|[V:5]x6|
-[V:1](3ABA ^GA d>c|[V:2]A,,2 [E,C]2 [E,C]2|[V:3]x6|[V:4]x6|[V:5]x6|
-[V:1](Be EE){/G} F>E|[V:2]E,,2 [E,^G,D]2 [E,G,D]2|[V:3]x6|[V:4]x6|[V:5]x6|
-[V:1]E4 A2|[V:2]A,,2 [E,C]2 [E,C]2|[V:3]x6|[V:4]x6|[V:5]x6|
-[V:1](3(^GAG!<(! ^^FG AB)!<)!|[V:2]A,,2 [E,D]2 [E,D]2|[V:3]x6|[V:4]x6|[V:5]x6|
-[V:1]z2 c4-|[V:2]A,,2 [E,C]2 _A,,2|[V:3]x6|[V:4]E4 F^F|[V:5]x6|
-[V:1]cTB AB [Ac][Bd]|[V:2]G,,2 [G,D]2 [G,D]2|[V:3]x6|[V:4]G4 F2|[V:5]x6|
-[V:1]e3 e e2|[V:2]z2 [E,G,C]2 [E,G,C]2|[V:3]x6|[V:4][EGc]6|[V:5]C,6|
-[V:1]e3 e d2|[V:2]z2 B,4|[V:3]x6|[V:4]z2 F4|[V:5]D,6|
-[V:1]cE ^Dc =DB|[V:2]z2 ^F,2 ^G,2|[V:3]x6|[V:4]x6|[V:5]{/E,,} E,6|
+[r:0/192][V:1][I:staff +1] A,2|[V:2]x2|[V:3]x2|[V:4]x2|[V:5]x2|
+[r:1/191][V:1][Q:1/4=160]!p![I:staff -1] z2[I:staff +1] E,C ^D,C|[V:2][A,,,A,,]2 z2 [A,,,A,,]2|[V:3]x6|[V:4]x6|[V:5]x6|
+[r:2/190][V:1]=D,B, F,B,[I:staff -1] F2|[V:2][A,,,A,,]2 z2 [A,,D,]2|[V:3]x4 ^G,2|[V:4]x6|[V:5]x6|
+[r:3/189][V:1]E2[I:staff +1] E,C ^D,C|[V:2][A,,,A,,]2 z2 [A,,,A,,]2|[V:3]A,2 x4|[V:4]x6|[V:5]x6|
+[r:4/188][V:1]=D,B, F,B,[I:staff -1] F2|[V:2][A,,,A,,]2 z2 [A,,D,]2|[V:3]x4 ^G,2|[V:4]x6|[V:5]x6|
+[r:5/187][V:1][I:staff +1] =D,B, F,B,[I:staff -1] F2|[V:2][A,,,A,,]2 z2 [A,,D,]2|[V:3]x2[I:staff -1] x2[I:staff +1] ^G,2|[V:4]x6|[V:5]x6|
+[r:6/186][V:1]"_cresc."[I:staff +1] =D,B, F,B,[I:staff -1] F2|[V:2][A,,,A,,]2 z2 [A,,D,]2|[V:3]x2[I:staff -1] x2[I:staff +1] ^G,2|[V:4]x6|[V:5]x6|
+[r:7/185][V:1]!fff! !>![bd'f']^a !>![bd']^^f !>![^gb]e|[V:2][A,,D,F,B,]2 [A,,D,F,B,]2 [A,,D,F,B,]2|[V:3]x6|[V:4]x6|[V:5]x6|
+[r:8/184][V:1]!f! [^e^g]^c [d=f]^A [Bd]F|[V:2][A,,D,F,B,]2 [A,,D,F,B,]2 [A,,D,F,B,]2|[V:3]x6|[V:4]x6|[V:5]x6|
+[r:9/183][V:1]!>!E4 A2|[V:2]A,,2 [E,C]2 [E,C]2|[V:3]x6|[V:4]x6|[V:5]x6|
+[r:10/182][V:1](3(^GAG ^^FG AB|[V:2]A,,2 [E,D]2 [E,D]2|[V:3]x6|[V:4]x6|[V:5]x6|
+[r:11/181][V:1]E4) c2|[V:2]A,,2 [E,C]2 [E,C]2|[V:3]x6|[V:4]x6|[V:5]x6|
+[r:12/180][V:1]{Bc} B2 ^AB cd|[V:2]A,,2 [E,^G,D]2 [E,G,D]2|[V:3]x6|[V:4]x6|[V:5]x6|
+[r:13/179][V:1]e2 (e'e e'^d|[V:2]A,,2 [E,C]2 [E,C]2|[V:3]x6|[V:4]x6|[V:5]x6|
+[r:14/178][V:1]e'=d) (ec eB)|[V:2]A,,2 [E,^G,D]2 [E,G,D]2|[V:3]x6|[V:4]x6|[V:5]x6|
+[r:15/177][V:1](3ABA ^GA d>c|[V:2]A,,2 [E,C]2 [E,C]2|[V:3]x6|[V:4]x6|[V:5]x6|
+[r:16/176][V:1](Be EE){/G} F>E|[V:2]E,,2 [E,^G,D]2 [E,G,D]2|[V:3]x6|[V:4]x6|[V:5]x6|
+[r:17/175][V:1]E4 A2|[V:2]A,,2 [E,C]2 [E,C]2|[V:3]x6|[V:4]x6|[V:5]x6|
+[r:18/174][V:1](3(^GAG!<(! ^^FG AB)!<)!|[V:2]A,,2 [E,D]2 [E,D]2|[V:3]x6|[V:4]x6|[V:5]x6|
+[r:19/173][V:1]z2 c4-|[V:2]A,,2 [E,C]2 _A,,2|[V:3]x6|[V:4]E4 F^F|[V:5]x6|
+[r:20/172][V:1]cTB AB [Ac][Bd]|[V:2]G,,2 [G,D]2 [G,D]2|[V:3]x6|[V:4]G4 F2|[V:5]x6|
+[r:21/171][V:1]e3 e e2|[V:2]z2 [E,G,C]2 [E,G,C]2|[V:3]x6|[V:4][EGc]6|[V:5]C,6|
+[r:22/170][V:1]e3 e d2|[V:2]z2 B,4|[V:3]x6|[V:4]z2 F4|[V:5]D,6|
+[r:23/169][V:1]cE ^Dc =DB|[V:2]z2 ^F,2 ^G,2|[V:3]x6|[V:4]x6|[V:5]{/E,,} E,6|
 """)

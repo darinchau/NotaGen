@@ -1,7 +1,7 @@
 import os
 
 # Configurations for inference
-INFERENCE_WEIGHTS_PATH = 'weights_notagenx_p_size_16_p_length_1024_p_layers_20_h_size_1280.pth'               # Path to weights for inference# Folder to save output files
+INFERENCE_WEIGHTS_PATH = 'notagenx.pth'               # Path to weights for inference# Folder to save output files
 TOP_K = 9                                                       # Top k for sampling
 TOP_P = 0.9                                                      # Top p for sampling
 TEMPERATURE = 1.2                                                 # Temperature for sampling
