@@ -63,3 +63,10 @@ venv.bak/
 out/
 nohup.out
 .vscode
+*.pt
+*.pth
+*.abc
+*.xml
+*.mxl
+*.musicxml
+*.jsonl

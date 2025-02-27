@@ -1,12 +1,11 @@
-ORI_FOLDER = ""  # Replace with the path to your folder containing XML (.xml, .mxl, .musicxml) files
-DES_FOLDER = ""   # The script will convert the musicxml files and output standard abc notation files to this folder
-
-import os
-import math
-import random
-import subprocess
-from tqdm import tqdm
 from multiprocessing import Pool
+from tqdm import tqdm
+import subprocess
+import random
+import math
+import os
+ORI_FOLDER = "../inputs"  # Replace with the path to your folder containing XML (.xml, .mxl, .musicxml) files
+DES_FOLDER = "../inputs/abce"   # The script will convert the musicxml files and output standard abc notation files to this folder
 
 
 def convert_xml2abc(file_list):
